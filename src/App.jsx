@@ -104,7 +104,14 @@ function App() {
   const [userData, setUserData] = useState(() => {
     try {
       const raw = localStorage.getItem('resume_userData');
-      return raw ? JSON.parse(raw) : defaultData;
+      if (!raw) return defaultData;
+      const parsed = JSON.parse(raw);
+      // Keep saved resume content but reset preliminary details on page load
+      return {
+        ...defaultData,
+        ...parsed,
+        preliminary: {},
+      };
     } catch (e) {
       return defaultData;
     }
