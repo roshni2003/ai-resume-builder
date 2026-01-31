@@ -46,23 +46,43 @@ const ResumeEditor = ({ userData, setUserData, onBack, saveSnapshot, loadSnapsho
   };
 
   const handleDownload = () => {
-    // Print the preview element (user can select Save as PDF in print dialog)
+    // Print the preview element and copy current page styles so the PDF matches the on-screen resume
     const previewEl = document.getElementById('resume-preview');
     if (!previewEl) {
       alert('Preview not available for download');
       return;
     }
+
     const printWindow = window.open('', '_blank');
     if (!printWindow) { alert('Unable to open print window'); return; }
-    printWindow.document.write('<html><head><title>Resume</title>');
-    printWindow.document.write('<style>body{font-family: Arial, sans-serif;}</style>');
-    printWindow.document.write('</head><body>');
+
+    // Collect current document <link rel="stylesheet"> and <style> tags so we preserve styling
+    const headNodes = Array.from(document.querySelectorAll('link[rel="stylesheet"], style'));
+    const headHtml = headNodes.map(n => n.outerHTML).join('\n');
+
+    const extraPrintStyles = `
+      @page { size: 8.5in 11in; margin: 0.4in; }
+      html,body { margin: 0; padding: 0; }
+      /* Ensure no accidental page breaks inside resume */
+      #resume-preview { page-break-inside: avoid; }
+      #resume-preview * { page-break-inside: avoid; }
+    `;
+
+    printWindow.document.open();
+    printWindow.document.write(`<!doctype html><html><head><title>Resume</title>${headHtml}<style>${extraPrintStyles}</style></head><body>`);
+
+    // Insert the preview DOM
     printWindow.document.write(previewEl.innerHTML);
+
     printWindow.document.write('</body></html>');
     printWindow.document.close();
     printWindow.focus();
-    printWindow.print();
-    printWindow.close();
+
+    // Wait a moment for styles and fonts to load in the new window, then call print
+    setTimeout(() => {
+      try { printWindow.print(); } catch (e) { console.error('Print failed', e); }
+      // Do not forcibly close the window immediately so user can interact with print dialog
+    }, 500);
   };
 
   const handleSummaryUpdate = (data) => {
