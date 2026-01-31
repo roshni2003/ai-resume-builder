@@ -40,4 +40,9 @@ export async function generateWithBackend(prompt) {
 	}
 }
 
-export default { generateWithBackend };
+// ✅ named default export (this fixes CI)
+const aiBackendClient = {
+	generateWithBackend,
+};
+
+export default aiBackendClient;
