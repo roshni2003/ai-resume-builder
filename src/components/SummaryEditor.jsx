@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, TextField, Button, Typography, IconButton } from '@mui/material';
+import { Box, TextField, Button, Typography, } from '@mui/material';
 import { AutoAwesome, Edit, Delete } from '@mui/icons-material';
 import { generateWithBackend } from '../api/aiBackendClient';
 import { AI_PROMPTS } from '../AI_PROMPTS';
