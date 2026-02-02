@@ -102,27 +102,36 @@ dotenv.config();
 const app = express();
 
 /**
- * Middleware order matters
- */
-app.use(express.json());
-
-/**
- * CORS configuration
- * Make sure FRONTEND_URL is set correctly in Render
- * Example:
+ * CORS configuration - MUST come before other middleware
+ * Set FRONTEND_URL in Render environment variables to:
  * https://ai-resume-builder-mu-azure.vercel.app
  */
 const FRONTEND_URL = process.env.FRONTEND_URL || '*';
 
-app.use(express.json());
-
 app.use(cors({
-  origin: true,
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps, curl, or server-to-server)
+    if (!origin) return callback(null, true);
+    
+    // If FRONTEND_URL is wildcard, allow all
+    if (FRONTEND_URL === '*') return callback(null, true);
+    
+    // Allow the specific frontend URL
+    if (origin === FRONTEND_URL) return callback(null, true);
+    
+    // Also allow the Vercel URL directly as fallback
+    if (origin === 'https://ai-resume-builder-mu-azure.vercel.app') return callback(null, true);
+    
+    console.warn('CORS: Blocking origin:', origin);
+    callback(new Error('Not allowed by CORS'));
+  },
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  optionsSuccessStatus: 200
 }));
 
-app.options('*', cors());
+app.use(express.json());
 console.log('GEMINI_API_KEY set?', !!process.env.GEMINI_API_KEY);
 console.log('MODEL_NAME:', process.env.MODEL_NAME);
 console.log('FRONTEND_URL:', FRONTEND_URL);
