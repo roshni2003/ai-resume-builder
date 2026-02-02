@@ -9,11 +9,28 @@ const app = express();
 
 // ✅ CORS for your frontend
 const FRONTEND_URL = process.env.FRONTEND_URL || '*'; // set in Render env
+
+// Use a flexible origin handler so '*' effectively echoes the request Origin
 app.use(cors({
-  origin: FRONTEND_URL,
+  origin: (incomingOrigin, callback) => {
+    // Allow non-browser tools (curl, server-side) which may not send an Origin
+    if (!incomingOrigin) return callback(null, true);
+    if (FRONTEND_URL === '*') return callback(null, true);
+    // Allow single origin if configured
+    if (incomingOrigin === FRONTEND_URL) return callback(null, true);
+    console.warn('CORS: rejecting origin', incomingOrigin);
+    return callback(new Error('Not allowed by CORS'));
+  },
   methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  optionsSuccessStatus: 200,
+  preflightContinue: false,
 }));
+
+// Ensure preflight requests are handled
+app.options('*', (req, res) => {
+  res.sendStatus(200);
+});
 
 app.use(express.json());
 
