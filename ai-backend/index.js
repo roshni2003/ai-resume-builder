@@ -114,15 +114,15 @@ app.use(express.json());
  */
 const FRONTEND_URL = process.env.FRONTEND_URL || '*';
 
+app.use(express.json());
+
 app.use(cors({
-  origin: FRONTEND_URL === '*' ? true : FRONTEND_URL,
+  origin: true,
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
-// Let cors handle preflight requests properly
 app.options('*', cors());
-
 console.log('GEMINI_API_KEY set?', !!process.env.GEMINI_API_KEY);
 console.log('MODEL_NAME:', process.env.MODEL_NAME);
 console.log('FRONTEND_URL:', FRONTEND_URL);
