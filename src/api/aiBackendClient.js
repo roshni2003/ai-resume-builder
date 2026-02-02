@@ -2,19 +2,21 @@
 // Uses the dev backend directly when running on localhost:3000 to avoid
 // relying on react-scripts proxy. In production, leaves paths as same-origin.
 const getApiBase = () => {
-	try {
-		if (typeof window !== 'undefined' && window.location) {
-			// If running from the React dev server (default port 3000), target backend on 3001
-			if (window.location.hostname === 'localhost' && window.location.port === '3000') {
-				return 'http://localhost:3001';
-			}
-		}
-	} catch (e) {
-		// ignore
-	}
-	// default: same origin
-	return '';
+  try {
+    if (typeof window !== 'undefined' && window.location) {
+      // Dev environment: localhost:3000 -> backend on 3001
+      if (window.location.hostname === 'localhost' && window.location.port === '3000') {
+        return 'http://localhost:3001';
+      }
+    }
+  } catch (e) {
+    // ignore
+  }
+
+  // In production, use environment variable or same-origin
+  return process.env.REACT_APP_API_URL || '';
 };
+
 
 export async function generateWithBackend(prompt) {
 	const base = getApiBase();
