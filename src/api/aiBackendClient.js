@@ -1,50 +1,52 @@
-// Small client to call the local AI backend.
-// Uses the dev backend directly when running on localhost:3000 to avoid
-// relying on react-scripts proxy. In production, leaves paths as same-origin.
+// Small client to call the AI backend.
+// Dev: localhost:3000 → backend on 3001
+// Prod: uses REACT_APP_API_URL (Render backend)
+
 const getApiBase = () => {
-  try {
-    if (typeof window !== 'undefined' && window.location) {
-      // Dev environment: localhost:3000 -> backend on 3001
-      if (window.location.hostname === 'localhost' && window.location.port === '3000') {
-        return 'http://localhost:3001';
-      }
+  if (typeof window !== 'undefined' && window.location) {
+    // Dev environment: localhost:3000 → backend on 3001
+    if (window.location.hostname === 'localhost' && window.location.port === '3000') {
+      return 'http://localhost:3001';
     }
-  } catch (e) {
-    // ignore
   }
 
-  // In production, use environment variable or same-origin
-  return process.env.REACT_APP_API_URL || '';
+  // Production: use environment variable
+  if (process.env.REACT_APP_API_URL) {
+    return process.env.REACT_APP_API_URL.replace(/\/$/, ''); // remove trailing slash if any
+  }
+
+  // Fallback to same origin (should never happen if env variable is set)
+  return '';
 };
 
-
 export async function generateWithBackend(prompt) {
-	const base = getApiBase();
-	const url = `${base}/api/generate`;
+  const base = getApiBase();
+  const url = `${base}/api/generate`;
 
-	try {
-		const res = await fetch(url, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ prompt }),
-		});
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt }),
+    });
 
-		if (!res.ok) {
-			const err = await res.json().catch(() => ({}));
-			throw new Error(err.error || 'Backend generation failed');
-		}
+    if (!res.ok) {
+      // Try to parse backend error message
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || `Backend generation failed (status ${res.status})`);
+    }
 
-		const data = await res.json();
-		return data.text || '';
-	} catch (err) {
-		console.error('generateWithBackend error:', err);
-		throw err;
-	}
+    const data = await res.json();
+    return data.text || '';
+  } catch (err) {
+    console.error('generateWithBackend error:', err);
+    throw err;
+  }
 }
 
 // ✅ named default export (this fixes CI)
 const aiBackendClient = {
-	generateWithBackend,
+  generateWithBackend,
 };
 
 export default aiBackendClient;
