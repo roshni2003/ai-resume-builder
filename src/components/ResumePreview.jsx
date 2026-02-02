@@ -368,7 +368,7 @@ const ClassicEleganceTemplate = ({ preliminary, sections }) => {
         >
           {preliminary?.name || 'Your Name'}
         </Typography>
-        
+
         <Box
           sx={{
             display: 'flex',
@@ -552,33 +552,44 @@ const ClassicEleganceTemplate = ({ preliminary, sections }) => {
 
       {/* Skills */}
       {sections?.skills && sections.skills.length > 0 && (
-        <Box sx={{ mb: 3 }}>
-          <Typography
-            sx={{
-              fontWeight: 700,
-              color: '#FD79A8',
-              mb: 1.5,
-              fontSize: '1.1rem',
-              fontFamily: 'Georgia, serif',
-              textTransform: 'uppercase',
-              letterSpacing: 1,
-            }}
-          >
-            Skills
-          </Typography>
-          <Divider sx={{ mb: 2, bgcolor: '#FD79A8' }} />
-          {sections.skills.map((skill, index) => (
-            <Box key={index} sx={{ mb: 1.5 }}>
-              <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, mb: 0.5 }}>
-                {skill.category}:
-              </Typography>
-              <Typography sx={{ fontSize: '0.8rem', color: 'text.secondary' }}>
-                {skill.items?.join(', ')}
-              </Typography>
-            </Box>
-          ))}
-        </Box>
-      )}
+  <Box sx={{ mb: 3 }}>
+    <Typography
+      sx={{
+        fontWeight: 700,
+        color: '#FD79A8',
+        mb: 1.5,
+        fontSize: '1.1rem',
+        fontFamily: 'Georgia, serif',
+        textTransform: 'uppercase',
+        letterSpacing: 1,
+      }}
+    >
+      Skills
+    </Typography>
+
+    <Divider sx={{ mb: 2, bgcolor: '#FD79A8' }} />
+
+    <Box
+      sx={{
+        columnCount: 2,          // ✅ two columns
+        columnGap: '32px',       // ✅ space between columns
+      }}
+    >
+      <Typography
+        sx={{
+          fontSize: '0.85rem',
+          color: 'text.secondary',
+          lineHeight: 1.9,
+        }}
+      >
+        {sections.skills
+          .flatMap(skill => skill.items || [])
+          .join(' • ')}
+      </Typography>
+    </Box>
+  </Box>
+)}
+
 
       {/* Languages & Interests */}
       <Box sx={{ display: 'flex', gap: 4 }}>
