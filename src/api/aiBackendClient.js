@@ -16,6 +16,7 @@ const getApiBase = () => {
   }
 
   // Fallback to same origin (should never happen if env variable is set)
+  if (typeof window !== 'undefined' && window.location) return window.location.origin;
   return '';
 };
 
@@ -24,8 +25,12 @@ export async function generateWithBackend(prompt) {
   const url = `${base}/api/generate`;
 
   try {
+    console.debug('[aiBackendClient] POST', url);
+    console.debug('[aiBackendClient] prompt preview:', prompt && prompt.slice(0, 120));
+
     const res = await fetch(url, {
       method: 'POST',
+      mode: 'cors',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ prompt }),
     });
@@ -33,7 +38,8 @@ export async function generateWithBackend(prompt) {
     if (!res.ok) {
       // Try to parse backend error message
       const err = await res.json().catch(() => ({}));
-      throw new Error(err.error || `Backend generation failed (status ${res.status})`);
+      const backendMsg = err.error || err.message || `status ${res.status}`;
+      throw new Error(`Backend generation failed: ${backendMsg}`);
     }
 
     const data = await res.json();
